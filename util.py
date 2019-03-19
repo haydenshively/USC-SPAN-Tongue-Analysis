@@ -16,9 +16,9 @@ def find_largest(contours):
             largest_area = area
     return largest
 
-def extract_tongue_from(motion):
+def extract_tongue_from(motion, THRESHOLD):
     viz_motion = motion/motion.max()
-    mask = (viz_motion > .32).astype('uint8')
+    mask = (viz_motion > THRESHOLD).astype('uint8')
 
     contours, hierarchy = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     largest_contour = find_largest(contours)

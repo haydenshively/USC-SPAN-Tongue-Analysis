@@ -7,7 +7,9 @@ from history import History
 INPUT_PATH = 'datasets/people/lac02122017_20_08_52_withaudio.avi'
 OUTPUT_PATH = 'results/people/lac02122017_20_08_52_withaudio'# NOTE: path should not include extension for output
 MEMORY_LENGTH = 20
-DIFFERENCE_THRESH = 10# 15
+DIFFERENCE_THRESH = 10
+MOTION_THRESHOLD = 0.32
+WHITE_THRESHOLD = 60
 
 from film import Film
 film = Film(INPUT_PATH)
@@ -34,15 +36,15 @@ def find_motion(frame, prev_ret_val, iter, MEMORY_LENGTH, DIFFERENCE_THRESH):
 
 @film.processor
 @film.output
-def find_tongue(frame, prev_ret_val, iter, TONGUE_MASK):
+def find_tongue(frame, prev_ret_val, iter, TONGUE_MASK, WHITE_THRESHOLD):
     if iter is 0: return (None, [])
     else:
         gray = frame[:,:,0]
 
         mod = gray.copy()
         mod[~TONGUE_MASK] = 0
-        mod[mod < 60] = 0
-        mod[mod >= 60] = 255
+        mod[mod < WHITE_THRESHOLD] = 0
+        mod[mod >= WHITE_THRESHOLD] = 255
 
         contours, hierarchy = cv2.findContours(mod, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
         largest_contour = find_largest(contours)
@@ -63,10 +65,9 @@ def find_tongue(frame, prev_ret_val, iter, TONGUE_MASK):
         return (side_by_side, prev_ret_val[1])
 
 
-
 _, motion = find_motion(MEMORY_LENGTH = MEMORY_LENGTH, DIFFERENCE_THRESH = DIFFERENCE_THRESH)
-tongue_mask = extract_tongue_from(motion)
-_, contour_history = find_tongue(TONGUE_MASK = tongue_mask)
+tongue_mask = extract_tongue_from(motion, THRESHOLD = MOTION_THRESHOLD)
+_, contour_history = find_tongue(TONGUE_MASK = tongue_mask, WHITE_THRESHOLD  = WHITE_THRESHOLD)
 
 
 with open(OUTPUT_PATH + '.txt', 'w') as file_handler:
