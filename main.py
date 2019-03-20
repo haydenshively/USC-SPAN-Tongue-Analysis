@@ -4,12 +4,12 @@ import numpy as np
 from util import *
 from history import History
 
-INPUT_PATH = 'datasets/people/lac02122017_20_08_52_withaudio.avi'
-OUTPUT_PATH = 'results/people/lac02122017_20_08_52_withaudio'# NOTE: path should not include extension for output
+INPUT_PATH = 'datasets/people/lac09172017_20_05_09_withaudio.avi'
+OUTPUT_PATH = 'results/people/lac09172017_20_05_09_withaudio'# NOTE: path should not include extension for output
 MEMORY_LENGTH = 25
 DIFFERENCE_THRESH = 25
 MOTION_THRESHOLD = 0.23
-WHITE_THRESHOLD = 60
+WHITE_THRESHOLD = 65
 
 from film import Film
 film = Film(INPUT_PATH)
@@ -44,6 +44,10 @@ def find_tongue(frame, prev_ret_val, iter, TONGUE_MASK, WHITE_THRESHOLD):
         mod[~TONGUE_MASK] = 0
         mod[mod < WHITE_THRESHOLD] = 0
         mod[mod >= WHITE_THRESHOLD] = 255
+
+        kernel = np.ones((3, 3), dtype = 'uint8')
+        mod = cv2.erode(mod, kernel, iterations = 1)
+        mod = cv2.dilate(mod, kernel, iterations = 1)
 
         contours, hierarchy = cv2.findContours(mod, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
         largest_contour = np.asarray(find_largest(contours))[:, 0]
@@ -86,6 +90,12 @@ with open(OUTPUT_PATH + '.txt', 'w') as file_handler:
         for j in range(contour.shape[0]):
             file_handler.write('{} {}\n'.format(contour[j, 0], contour[j, 1]))
         file_handler.write('End points for frame {}\n'.format(i))
+
+with open(OUTPUT_PATH + '_PARAMS.txt', 'w') as file_handler:
+    file_handler.write('MEMORY_LENGTH {}\n'.format(MEMORY_LENGTH))
+    file_handler.write('DIFFERENCE_THRESH {}\n'.format(DIFFERENCE_THRESH))
+    file_handler.write('MOTION_THRESHOLD {}\n'.format(MOTION_THRESHOLD))
+    file_handler.write('WHITE_THRESHOLD {}\n'.format(WHITE_THRESHOLD))
 
 
 cv2.destroyAllWindows()
