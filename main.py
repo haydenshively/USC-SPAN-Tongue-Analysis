@@ -49,7 +49,7 @@ def find_tongue(frame, prev_ret_val, iter, TONGUE_MASK, WHITE_THRESHOLD):
         mod = cv2.erode(mod, kernel, iterations = 1)
         mod = cv2.dilate(mod, kernel, iterations = 1)
 
-        contours, hierarchy = cv2.findContours(mod, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+        _, contours, hierarchy = cv2.findContours(mod, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
         largest_contour = np.asarray(find_largest(contours))[:, 0]
         prev_ret_val[1].append(largest_contour)
 

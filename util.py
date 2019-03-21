@@ -98,16 +98,16 @@ def remove_chin(mask, contour):
 def extract_tongue_from(motion, THRESHOLD):
     mask = (motion/motion.max() > THRESHOLD).astype('uint8')
 
-    contours, hierarchy = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+    _, contours, hierarchy = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
     largest_contour = find_largest(contours)
     M = cv2.moments(largest_contour)
     centroid = (M['m10']/M['m00'], M['m01']/M['m00'])
     remove_lips(mask, largest_contour)
 
-    contours, hierarchy = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    _, contours, hierarchy = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     remove_chin(mask, match_centroid(contours, centroid))
 
-    contours, hierarchy = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    _, contours, hierarchy = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     hull = cv2.convexHull(match_centroid(contours, centroid))
 
     mask_tongue = np.zeros_like(mask)

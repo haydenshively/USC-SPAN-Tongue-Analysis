@@ -1,22 +1,18 @@
 import cv2
 
-class Film(cv2.VideoCapture):
+class Film(object):
 
     def __init__(self, path):
-        import sys
-        version = sys.version_info[0]
-        if version == 2: super(Film, self).__init__(path)
-        else: super().__init__(path)
-        del sys
+        self.vc = cv2.VideoCapture(path)
 
         import platform
         self.PLATFORM = platform.system()
         del platform
 
         self.PATH = path
-        self.FPS = int(self.get(cv2.CAP_PROP_FPS))
-        self.WIDTH = int(self.get(cv2.CAP_PROP_FRAME_WIDTH))
-        self.HEIGHT = int(self.get(cv2.CAP_PROP_FRAME_HEIGHT))
+        self.FPS = int(self.vc.get(cv2.CAP_PROP_FPS))
+        self.WIDTH = int(self.vc.get(cv2.CAP_PROP_FRAME_WIDTH))
+        self.HEIGHT = int(self.vc.get(cv2.CAP_PROP_FRAME_HEIGHT))
         self.out_path = 'output'
         self.out_scale = (1, 1)
 
@@ -30,15 +26,15 @@ class Film(cv2.VideoCapture):
         self.out = None#cv2.VideoWriter(self.out_path + self.out_path_extension, self.fourcc, self.FPS, (self.WIDTH*self.out_scale[0], self.HEIGHT*self.out_scale[1]))
 
     def reopen(self):
-        self.open(self.PATH)
+        self.vc.open(self.PATH)
 
     def loop(self, function, *args, **kwargs):
         self.reopen()
         ret_val = function(None, prev_ret_val = None, iter = 0, *args, **kwargs)
         iter = 1
 
-        while self.isOpened():
-            available, frame = self.read()
+        while self.vc.isOpened():
+            available, frame = self.vc.read()
             if not available: break
 
             ret_val = function(frame, prev_ret_val = ret_val, iter = iter, *args, **kwargs)
@@ -76,4 +72,4 @@ class Film(cv2.VideoCapture):
 
     def release_all(self):
         self.out.release()
-        self.release()
+        self.vc.release()
