@@ -4,8 +4,8 @@ import numpy as np
 from util import *
 from history import History
 
-INPUT_PATH = 'datasets/people/lac09172017_20_05_09_withaudio.avi'
-OUTPUT_PATH = 'results/people/lac09172017_20_05_09_withaudio'# NOTE: path should not include extension for output
+INPUT_PATH = 'datasets/people/lac02182018_19_04_51_withaudio.avi'
+OUTPUT_PATH = 'results/people/lac02182018_19_04_51_withaudio'# NOTE: path should not include extension for output
 MEMORY_LENGTH = 25
 DIFFERENCE_THRESH = 25
 MOTION_THRESHOLD = 0.23
