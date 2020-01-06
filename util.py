@@ -1,9 +1,11 @@
 import numpy as np
 import cv2
 
+
 def imshowbig(title, image):
     cv2.imshow(title, cv2.pyrUp(image))
     cv2.waitKey(1)
+
 
 def find_largest(contours):
     largest = contours[0]
@@ -17,26 +19,28 @@ def find_largest(contours):
             largest_area = area
     return largest
 
+
 def match_centroid(contours, target):
     best = None
     best_offset = None
     for contour in contours:
         M = cv2.moments(contour)
         if M['m00'] == 0: continue
-        centroid = (M['m10']/M['m00'], M['m01']/M['m00'])
-        offset = (centroid[0]-target[0])**2 + (centroid[1]-target[1])**2
+        centroid = (M['m10'] / M['m00'], M['m01'] / M['m00'])
+        offset = (centroid[0] - target[0]) ** 2 + (centroid[1] - target[1]) ** 2
         if (best is None) or (offset < best_offset):
             best = contour
             best_offset = offset
     return best
 
+
 def remove_lips(mask, contour):
-    hull = cv2.convexHull(contour, returnPoints = False)
+    hull = cv2.convexHull(contour, returnPoints=False)
 
     defects = cv2.convexityDefects(contour, hull)
-    defects_argmax = defects[:,:,3].argmax()# remove tongue-arch defect from list
-    defects[defects_argmax,:,3] = 0
-    defects_argmax = defects[:,:,3].argmax()# now the biggest is bridge between tongue and lips
+    defects_argmax = defects[:, :, 3].argmax()  # remove tongue-arch defect from list
+    defects[defects_argmax, :, 3] = 0
+    defects_argmax = defects[:, :, 3].argmax()  # now the biggest is bridge between tongue and lips
 
     s, e, f, d = defects[defects_argmax, 0]
     bridge_x, bridge_y = tuple(contour[f][0])
@@ -53,12 +57,13 @@ def remove_lips(mask, contour):
     #         cv2.line(mask,start,end,127,1)
     #         cv2.circle(mask,far,2,127,-1)
 
+
 def remove_chin(mask, contour):
     hull = cv2.convexHull(contour)
 
-    left_most = tuple(hull[hull[:,:,0].argmin()][0])
+    left_most = tuple(hull[hull[:, :, 0].argmin()][0])
 
-    xy_sums = hull[:,:,0] + hull[:,:,1]
+    xy_sums = hull[:, :, 0] + hull[:, :, 1]
     bottom_right_id = xy_sums.argmax()
     bottom_right = tuple(hull[bottom_right_id][0])
 
@@ -95,13 +100,14 @@ def remove_chin(mask, contour):
     # print('end frame')
     # imshowbig('ibuwv', mask)
 
+
 def extract_tongue_from(motion, THRESHOLD):
-    mask = (motion/motion.max() > THRESHOLD).astype('uint8')
+    mask = (motion / motion.max() > THRESHOLD).astype('uint8')
 
     _, contours, hierarchy = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
     largest_contour = find_largest(contours)
     M = cv2.moments(largest_contour)
-    centroid = (M['m10']/M['m00'], M['m01']/M['m00'])
+    centroid = (M['m10'] / M['m00'], M['m01'] / M['m00'])
     remove_lips(mask, largest_contour)
 
     _, contours, hierarchy = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
@@ -113,10 +119,10 @@ def extract_tongue_from(motion, THRESHOLD):
     mask_tongue = np.zeros_like(mask)
     cv2.drawContours(mask_tongue, [hull], 0, (1), -1)
 
-    kernel = np.ones((3, 3), dtype = 'uint8')
-    mask_tongue_dilated = cv2.dilate(mask_tongue, kernel, iterations = 1)
+    kernel = np.ones((3, 3), dtype='uint8')
+    mask_tongue_dilated = cv2.dilate(mask_tongue, kernel, iterations=1)
 
-    vis = (motion/motion.max()*255).astype('uint8')
+    vis = (motion / motion.max() * 255).astype('uint8')
     cv2.drawContours((vis), [hull], 0, (255), 1)
     imshowbig('mask', vis)
 
